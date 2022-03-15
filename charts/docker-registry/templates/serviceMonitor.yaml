@@ -12,7 +12,7 @@ spec:
   selector:
     matchLabels: {{- include "common.labels.selectorLabels" . | nindent 6 }}
   endpoints:
-    - port: {{ .Values.prometheus.port }}
+    - port: {{ .Values.prometheus.port | quote }}
       path: {{ .Values.prometheus.path | quote }}
       interval: {{ .Values.prometheus.interval | quote }}
 {{- end -}}
