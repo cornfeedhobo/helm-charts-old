@@ -1,0 +1,42 @@
+{{/* Make sure all variables are set properly */}}
+{{- include "common.values.setup" . }}
+
+{{/* Default the tag to the chart app version */}}
+{{- if not .Values.image.tag -}}
+{{- $_ := set .Values.image "tag" .Chart.AppVersion -}}
+{{- end -}}
+
+{{/* Disable the default http port so we can have it named "registry"  */}}
+{{- $_ := set .Values.service.main.ports.http "enabled" false -}}
+
+{{- define "docker-registry.configVolumeBase" -}}
+name: "docker-registry-config"
+enabled: "true"
+readOnly: true
+accessMode: ReadOnlyMany
+mountPath: "/etc/docker/registry/config.yml"
+subPath: "config.yml"
+{{- end -}}
+
+{{/* Create a volume mount for the config secret */}}
+{{- define "docker-registry.configSecretVolume" -}}
+{{ include "docker-registry.configVolumeBase" . }}
+type: "secret"
+{{- end -}}
+
+{{/* Create a volume mount for the config map */}}
+{{- define "docker-registry.configMapVolume" -}}
+{{ include "docker-registry.configVolumeBase" . }}
+type: "configMap"
+{{- end -}}
+
+{{/* Create a secret from passed config data or mount the passed secret name */}}
+{{- if .Values.configSecretName -}}
+{{- $_ := set .Values.configmap.config "enabled" false -}}
+{{- $_ := set .Values.persistence "docker-registry-config" (include "docker-registry.configSecretVolume" . | fromYaml) -}}
+{{- else -}}
+{{- $_ := set .Values.persistence "docker-registry-config" (include "docker-registry.configMapVolume" . | fromYaml) -}}
+{{- end -}}
+
+{{/* Render the templates */}}
+{{ include "common.all" . }}

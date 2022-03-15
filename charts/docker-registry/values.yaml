@@ -1,0 +1,85 @@
+# Default values for docker-registry.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+podSecurityContext:
+  fsGroup: 1000
+  runAsUser: 1000
+
+controller:
+  # -- docker registry is stateless and we default to 2 replicas
+  # Large environments should consider the autoscale option.
+  replicas: 2
+
+image:
+  # -- image repository
+  repository: docker.io/registry
+  # -- image tag, defaults to the chart's appVersion
+  tag: ""
+  # -- image pull policy
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+
+command:
+  - /bin/registry
+  - serve
+  - /etc/docker/registry/config.yml
+
+# -- (Optional) Name of the manually created secret containing the
+# [docker registry config file](https://docs.docker.com/registry/configuration/#list-of-configuration-options).
+# If not provided, configmap must be populated.
+configSecretName: ""
+
+configmap:
+  # -- default config for docker-compose. this is only suitable for validation.
+  # Most deploymets will need to create a dedicated config.
+  config:
+    enabled: true
+    data:
+      config.yml: |-
+        health:
+          storagedriver:
+            enabled: true
+            interval: 10s
+            threshold: 3
+        http:
+          addr: 0.0.0.0:5000
+          secret: asecretfordevelopment
+          headers:
+            X-Content-Type-Options: [nosniff]
+        log:
+          fields:
+            service: registry
+        proxy:
+          remoteurl: https://registry-1.docker.io
+        storage:
+          cache:
+            blobdescriptor: inmemory
+          delete:
+            enabled: true
+          inmemory:
+          maintenance:
+            uploadpurging:
+              enabled: true
+              age: 168h
+              interval: 24h
+              dryrun: false
+        version: 0.1
+
+service:
+  main:
+    ports:
+      registry:
+        enabled: true
+        primary: true
+        port: 5000
+        protocol: HTTP
+
+ingress:
+  main:
+    enabled: false
+    hosts:
+      - host: "docker-registry.local"
+    annotations: {}
+      # kubernetes.io/tls-acme: "true"
