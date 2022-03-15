@@ -1,7 +1,4 @@
-# Default values for docker-registry.
-# This is a YAML-formatted file.
-# Declare variables to be passed into your templates.
-
+# -- Configure the Security Context for the Pod
 podSecurityContext:
   fsGroup: 1000
   runAsUser: 1000
@@ -21,6 +18,7 @@ image:
 
 imagePullSecrets: []
 
+# -- Override the command(s) for the default container
 command:
   - /bin/registry
   - serve
@@ -31,11 +29,16 @@ command:
 # If not provided, configmap must be populated.
 configSecretName: ""
 
+# -- Configure configMaps for the chart here.
+# Additional configMaps can be added by adding a dictionary key similar to the 'config' object.
+# @default -- See below
 configmap:
   # -- default config for docker-compose. this is only suitable for validation.
   # Most deploymets will need to create a dedicated config.
   config:
+    # -- Enables or disables the configMap
     enabled: true
+    # -- configMap data content. Helm template enabled.
     data:
       config.yml: |-
         health:
@@ -44,10 +47,15 @@ configmap:
             interval: 10s
             threshold: 3
         http:
-          addr: 0.0.0.0:5000
-          secret: asecretfordevelopment
+          addr: 0.0.0.0:{{ .Values.service.main.ports.http.port }}
+          debug:
+            addr: 0.0.0.0:{{ .Values.prometheus.port }}
+            prometheus:
+              enabled: true
+              path: {{ .Values.prometheus.path }}
           headers:
             X-Content-Type-Options: [nosniff]
+          secret: asecretfordevelopment
         log:
           fields:
             service: registry
@@ -67,19 +75,46 @@ configmap:
               dryrun: false
         version: 0.1
 
+# -- Configure the services for the chart here.
+# Additional services can be added by adding a dictionary key similar to the 'main' service.
+# @default -- See below
 service:
   main:
+    # -- Configure the Service port information here.
+    # Additional ports can be added by adding a dictionary key similar to the 'http' service.
+    # @default -- See below
     ports:
-      registry:
+      http:
+        # -- Enables or disables the port
         enabled: true
+        # -- Make this the primary port (used in probes, notes, etc...)
+        # If there is more than 1 service, make sure that only 1 port is marked as primary.
         primary: true
+        # -- The port number
         port: 5000
+        # -- Port protocol.
         protocol: HTTP
 
+# -- Configure the ingresses for the chart here.
+# Additional ingresses can be added by adding a dictionary key similar to the 'main' ingress.
+# @default -- See below
 ingress:
   main:
+    # -- Enables or disables the ingress
     enabled: false
     hosts:
-      - host: "docker-registry.local"
+      -  # -- Host address. Helm template can be passed.
+        host: "docker-registry.local"
+    # -- Provide additional annotations which may be required.
     annotations: {}
       # kubernetes.io/tls-acme: "true"
+
+prometheus:
+  # -- Enables or disables prometheus metrics
+  enabled: true
+  # -- Prometheus metrics endpoint port
+  port: 5001
+  # -- Prometheus metrics endpoint path
+  path: "/metrics"
+  # -- Prometheus scrape interval
+  interval: "15s"

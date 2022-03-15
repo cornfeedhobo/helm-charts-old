@@ -6,8 +6,20 @@
 {{- $_ := set .Values.image "tag" .Chart.AppVersion -}}
 {{- end -}}
 
-{{/* Disable the default http port so we can have it named "registry"  */}}
-{{- $_ := set .Values.service.main.ports.http "enabled" false -}}
+{{/* If adding prometheus metrics, add the service port */}}
+{{- define "docker-registry.prometheusServicePorts" -}}
+enabled: true
+port: {{ .Values.prometheus.port }}
+protocol: "HTTP"
+{{- end -}}
+{{- define "docker-registry.prometheusPodAnnotations" -}}
+prometheus.io/path: {{ .Values.prometheus.path | quote }}
+prometheus.io/port: {{ .Values.prometheus.port }}
+{{- end -}}
+{{- if .Values.prometheus.enabled -}}
+{{- $_ := set .Values.service.main.ports "metrics" (include "docker-registry.prometheusServicePorts" . | fromYaml) -}}
+{{- $_ := set .Values.controller "annotations" (merge .Values.controller.annotations (include "docker-registry.prometheusPodAnnotations" . | fromYaml)) -}}
+{{- end -}}
 
 {{- define "docker-registry.configVolumeBase" -}}
 name: "docker-registry-config"

@@ -1,0 +1,18 @@
+{{- if .Capabilities.APIVersions.Has "monitoring.coreos.com/v1/ServiceMonitor" }}
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ include "common.names.fullname" . }}
+  labels: {{- include "common.labels" . | nindent 4 }}
+spec:
+  jobLabel: {{ include "common.names.fullname" . | quote }}
+  namespaceSelector:
+    matchNames: [{{ .Release.Namespace | quote }}]
+  selector:
+    matchLabels: {{- include "common.labels.selectorLabels" . | nindent 6 }}
+  endpoints:
+    - port: {{ .Values.prometheus.port }}
+      path: {{ .Values.prometheus.path | quote }}
+      interval: {{ .Values.prometheus.interval | quote }}
+{{- end -}}
