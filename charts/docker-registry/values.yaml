@@ -75,6 +75,10 @@ configmap:
               dryrun: false
         version: 0.1
 
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 1
+
 # -- Configure the services for the chart here.
 # Additional services can be added by adding a dictionary key similar to the 'main' service.
 # @default -- See below
@@ -113,10 +117,12 @@ ingress:
 
 prometheus:
   # -- Enables or disables prometheus metrics
-  enabled: true
+  enabled: false
   # -- Prometheus metrics endpoint port
   port: 5001
   # -- Prometheus metrics endpoint path
   path: "/metrics"
   # -- Prometheus scrape interval
   interval: "15s"
+  # -- skip the check for ServiceMonitor CRD before creating
+  forceServiceMonitor: false

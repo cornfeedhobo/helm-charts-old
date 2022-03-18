@@ -1,6 +1,4 @@
 # Chart dependencies
-charts/**/*.tgz
+charts/**/charts/*
 
-charts/**/charts/common
-
-debug.yaml
+debug-*.yaml

@@ -1,4 +1,4 @@
-{{- if .Capabilities.APIVersions.Has "monitoring.coreos.com/v1/ServiceMonitor" }}
+{{- if or .Values.prometheus.forceServiceMonitor (.Capabilities.APIVersions.Has "monitoring.coreos.com/v1/ServiceMonitor") }}
 ---
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
