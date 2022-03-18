@@ -9,12 +9,12 @@
 {{/* If adding prometheus metrics, add the service port */}}
 {{- define "docker-registry.prometheusServicePorts" -}}
 enabled: true
-port: {{ .Values.prometheus.port }}
+port: "metrics"
 protocol: "HTTP"
 {{- end -}}
 {{- define "docker-registry.prometheusPodAnnotations" -}}
 prometheus.io/path: {{ .Values.prometheus.path | quote }}
-prometheus.io/port: {{ .Values.prometheus.port | quote }}
+prometheus.io/port: "metrics"
 {{- end -}}
 {{- if .Values.prometheus.enabled -}}
 {{- $_ := set .Values.service.main.ports "metrics" (include "docker-registry.prometheusServicePorts" . | fromYaml) -}}
