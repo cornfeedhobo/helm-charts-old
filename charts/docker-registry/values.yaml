@@ -105,6 +105,8 @@ ingress:
     hosts:
       -  # -- Host address. Helm template can be passed.
         host: "docker-registry.local"
+        paths:
+          - path: "/"
     # -- Provide additional annotations which may be required.
     annotations: {}
       # kubernetes.io/tls-acme: "true"
