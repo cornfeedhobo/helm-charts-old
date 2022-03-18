@@ -113,7 +113,7 @@ ingress:
 
 prometheus:
   # -- Enables or disables prometheus metrics
-  enabled: false
+  enabled: true
   # -- Prometheus metrics endpoint port
   port: 5001
   # -- Prometheus metrics endpoint path

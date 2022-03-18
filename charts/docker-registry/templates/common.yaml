@@ -9,7 +9,7 @@
 {{/* If adding prometheus metrics, add the service port */}}
 {{- define "docker-registry.prometheusServicePorts" -}}
 enabled: true
-port: "metrics"
+port: {{ .Values.prometheus.port }}
 protocol: "HTTP"
 {{- end -}}
 {{- define "docker-registry.prometheusPodAnnotations" -}}
