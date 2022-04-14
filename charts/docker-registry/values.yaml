@@ -34,13 +34,16 @@ configSecretName: ""
 # @default -- See below
 configmap:
   # -- default config for docker-compose. this is only suitable for validation.
-  # Most deploymets will need to create a dedicated config.
+  # Most deployments will need to create a dedicated config.
   config:
     # -- Enables or disables the configMap
     enabled: true
     # -- configMap data content. Helm template enabled.
     data:
       config.yml: |-
+        {{- if .Values.service.main.auth }}
+        auth: {{- toYaml .Values.service.main.auth | nindent 4 }}
+        {{- end }}
         health:
           storagedriver:
             enabled: true
@@ -98,6 +101,11 @@ service:
         port: 5000
         # -- Port protocol.
         protocol: HTTP
+    auth:
+      # -- Configure the docker registry authentication scheme.
+      # silly:
+      #   realm: 'silly-realm'
+      #   service: 'silly-service'
 
 # -- Configure the ingresses for the chart here.
 # Additional ingresses can be added by adding a dictionary key similar to the 'main' ingress.
