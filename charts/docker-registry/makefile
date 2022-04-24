@@ -1,4 +1,8 @@
-PHONY: debug
+.PHONY: debug
 
 debug:
-	@helm template foobar . -f debug-values.yaml > debug-render.yaml
+	@helm template docker-registry . \
+		-f debug-values.yaml \
+		--api-versions cert-manager.io/v1 \
+		--debug \
+		> debug-render.yaml

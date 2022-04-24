@@ -1,33 +1,13 @@
 {{/* Make sure all variables are set properly */}}
 {{- include "common.values.setup" . }}
 
-{{/* Default the tag to the chart app version */}}
-{{- if not .Values.image.tag -}}
-{{- $_ := set .Values.image "tag" .Chart.AppVersion -}}
-{{- end -}}
-
-{{/* If adding prometheus metrics, add the service port */}}
-{{- define "docker-registry.prometheusServicePorts" -}}
-enabled: true
-port: {{ .Values.prometheus.port }}
-protocol: "HTTP"
-{{- end -}}
-{{- define "docker-registry.prometheusPodAnnotations" -}}
-prometheus.io/path: {{ .Values.prometheus.path | quote }}
-prometheus.io/port: "metrics"
-{{- end -}}
-{{- if .Values.prometheus.enabled -}}
-{{- $_ := set .Values.service.main.ports "metrics" (include "docker-registry.prometheusServicePorts" . | fromYaml) -}}
-{{- $_ := set .Values.controller "annotations" (merge .Values.controller.annotations (include "docker-registry.prometheusPodAnnotations" . | fromYaml)) -}}
-{{- end -}}
-
+{{/* Create a volume description for the config map/secret */}}
 {{- define "docker-registry.configVolumeBase" -}}
 name: "docker-registry-config"
 enabled: "true"
 readOnly: true
 accessMode: ReadOnlyMany
-mountPath: "/etc/docker/registry/config.yml"
-subPath: "config.yml"
+mountPath: "/etc/docker/registry"
 {{- end -}}
 
 {{/* Create a volume mount for the config secret */}}
@@ -48,6 +28,63 @@ type: "configMap"
 {{- $_ := set .Values.persistence "docker-registry-config" (include "docker-registry.configSecretVolume" . | fromYaml) -}}
 {{- else -}}
 {{- $_ := set .Values.persistence "docker-registry-config" (include "docker-registry.configMapVolume" . | fromYaml) -}}
+{{- end -}}
+
+{{/* If adding prometheus metrics, add the service port */}}
+{{- define "docker-registry.prometheusServicePorts" -}}
+enabled: true
+port: {{ .Values.prometheus.port }}
+protocol: "HTTP"
+{{- end -}}
+{{- define "docker-registry.prometheusPodAnnotations" -}}
+prometheus.io/path: {{ .Values.prometheus.path | quote }}
+prometheus.io/port: "metrics"
+{{- end -}}
+{{- if .Values.prometheus.enabled -}}
+{{- $_ := set .Values.service.main.ports "metrics" (include "docker-registry.prometheusServicePorts" . | fromYaml) -}}
+{{- $_ := set .Values.controller "annotations" (merge .Values.controller.annotations (include "docker-registry.prometheusPodAnnotations" . | fromYaml)) -}}
+{{- end -}}
+
+{{/* Toggle Cert Manager support if the capabilities aren't peresent */}}
+{{- if not (or
+    (.Capabilities.APIVersions.Has "cert-manager.io/v1")
+    (.Capabilities.APIVersions.Has "cert-manager.io/v1beta1")
+    (.Capabilities.APIVersions.Has "cert-manager.io/v1alpha2")
+    (.Capabilities.APIVersions.Has "certmanager.k8s.io/v1alpha1")) -}}
+{{- $_ := set .Values.certmanager "enabled" false -}}
+{{- end -}}
+
+{{/* Define cert-manager API version */}}
+{{- define "common.capabilities.certmanager.issuerApiVersion" -}}
+  {{- if .Capabilities.APIVersions.Has "cert-manager.io/v1beta1" -}}
+    {{- print "cert-manager.io/v1beta1" -}}
+  {{- else if .Capabilities.APIVersions.Has "cert-manager.io/v1alpha2" -}}
+    {{- print "cert-manager.io/v1alpha2" -}}
+  {{- else if .Capabilities.APIVersions.Has "certmanager.k8s.io/v1alpha1" -}}
+    {{- print "certmanager.k8s.io/v1alpha1" -}}
+  {{- else -}}
+    {{- print "cert-manager.io/v1" -}}
+  {{- end -}}
+{{- end -}}
+
+{{/* Define ingress annotations when supporting cert-manager */}}
+{{- define "docker-registry.ingressCertManagerAnnotations" -}}
+cert-manager.io/issuer: {{ include "common.names.name" . | quote }}
+cert-manager.io/issuer-kind: "Issuer"
+{{- end -}}
+
+{{/* Define ingress TLS secret and host */}}
+{{- define "docker-registry.ingressCertManagerTls" -}}
+tls:
+  - secretName: "tls-{{ include "common.names.name" . }}-ingress"
+    hosts:
+      - "{{ (index .Values.ingress.main.hosts 0).host }}"
+{{- end -}}
+
+{{/* Modify ingress.main if supporting cert-manager */}}
+{{- if .Values.certmanager.enabled -}}
+{{- $_ := set .Values.ingress.main "annotations" (merge .Values.ingress.main.annotations (include "docker-registry.ingressCertManagerAnnotations" . | fromYaml)) -}}
+{{- $_ := set .Values.ingress.main "tls" (concat .Values.ingress.main.tls (include "docker-registry.ingressCertManagerTls" . | fromYaml).tls) }}
 {{- end -}}
 
 {{/* Render the templates */}}

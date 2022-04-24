@@ -1,33 +1,23 @@
-# -- Configure the Security Context for the Pod
-podSecurityContext:
-  fsGroup: 1000
-  runAsUser: 1000
-
-controller:
-  # -- docker registry is stateless and we default to 2 replicas
-  # Large environments should consider the autoscale option.
-  replicas: 2
-
-image:
-  # -- image repository
-  repository: docker.io/registry
-  # -- image tag, defaults to the chart's appVersion
-  tag: ""
-  # -- image pull policy
-  pullPolicy: IfNotPresent
-
-imagePullSecrets: []
+# -- Configure cert-manager
+certmanager:
+  enabled: false
+  issuerSpec:
+    acme:
+      server: https://acme-v02.api.letsencrypt.org/directory
+      # email: none@example.com
+      privateKeySecretRef:
+        name: "letsencrypt-production"
+      solvers:
+        - http01:
+            ingress:
+              # options: traefik, nginx
+              class: ""
 
 # -- Override the command(s) for the default container
 command:
   - /bin/registry
   - serve
   - /etc/docker/registry/config.yml
-
-# -- (Optional) Name of the manually created secret containing the
-# [docker registry config file](https://docs.docker.com/registry/configuration/#list-of-configuration-options).
-# If not provided, configmap must be populated.
-configSecretName: ""
 
 # -- Configure configMaps for the chart here.
 # Additional configMaps can be added by adding a dictionary key similar to the 'config' object.
@@ -41,8 +31,8 @@ configmap:
     # -- configMap data content. Helm template enabled.
     data:
       config.yml: |-
-        {{- if .Values.service.main.auth }}
-        auth: {{- toYaml .Values.service.main.auth | nindent 4 }}
+        {{- with .Values.service.main.auth }}
+        auth: {{- toYaml . | nindent 4 }}
         {{- end }}
         health:
           storagedriver:
@@ -78,9 +68,65 @@ configmap:
               dryrun: false
         version: 0.1
 
+# -- (Optional) Name of the manually created secret containing the
+# [docker registry config file](https://docs.docker.com/registry/configuration/#list-of-configuration-options).
+# If not provided, configmap must be populated.
+configSecretName: ""
+
+controller:
+  type: "statefulset"
+  # -- docker registry is stateless and we default to 2 replicas
+  # Large environments should consider the autoscale option.
+  replicas: 2
+
+image:
+  # -- image repository
+  repository: docker.io/registry
+  # -- image tag, defaults to the chart's appVersion
+  tag: ""
+  # -- image pull policy
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+
+# -- Configure the ingresses for the chart here.
+# Additional ingresses can be added by adding a dictionary key similar to the 'main' ingress.
+# @default -- See below
+ingress:
+  main:
+    # -- Enables or disables the ingress
+    enabled: false
+    hosts:
+      -  # -- Host address. Helm template can be passed.
+        host: "docker-registry.local"
+        paths:
+          - path: "/"
+    # -- Provide additional annotations which may be required.
+    annotations: {}
+    tls: []
+      #   hosts:
+      #     - "docker-registry.local"
+
+# -- Configure the Security Context for the Pod
+podSecurityContext:
+  fsGroup: 1000
+  runAsUser: 1000
+
 podDisruptionBudget:
   enabled: true
   minAvailable: 1
+
+prometheus:
+  # -- Enables or disables prometheus metrics
+  enabled: false
+  # -- Prometheus metrics endpoint port
+  port: 5001
+  # -- Prometheus metrics endpoint path
+  path: "/metrics"
+  # -- Prometheus scrape interval
+  interval: "15s"
+  # -- skip the check for ServiceMonitor CRD before creating
+  forceServiceMonitor: false
 
 # -- Configure the services for the chart here.
 # Additional services can be added by adding a dictionary key similar to the 'main' service.
@@ -106,31 +152,3 @@ service:
       # silly:
       #   realm: 'silly-realm'
       #   service: 'silly-service'
-
-# -- Configure the ingresses for the chart here.
-# Additional ingresses can be added by adding a dictionary key similar to the 'main' ingress.
-# @default -- See below
-ingress:
-  main:
-    # -- Enables or disables the ingress
-    enabled: false
-    hosts:
-      -  # -- Host address. Helm template can be passed.
-        host: "docker-registry.local"
-        paths:
-          - path: "/"
-    # -- Provide additional annotations which may be required.
-    annotations: {}
-      # kubernetes.io/tls-acme: "true"
-
-prometheus:
-  # -- Enables or disables prometheus metrics
-  enabled: false
-  # -- Prometheus metrics endpoint port
-  port: 5001
-  # -- Prometheus metrics endpoint path
-  path: "/metrics"
-  # -- Prometheus scrape interval
-  interval: "15s"
-  # -- skip the check for ServiceMonitor CRD before creating
-  forceServiceMonitor: false
