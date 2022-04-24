@@ -4,10 +4,10 @@
 {{/* Create a volume description for the config map/secret */}}
 {{- define "docker-registry.configVolumeBase" -}}
 name: "docker-registry-config"
-enabled: "true"
+enabled: true
 readOnly: true
-accessMode: ReadOnlyMany
-mountPath: "/etc/docker/registry"
+accessMode: "ReadOnlyMany"
+mountPath: "{{ .Values.configMountPath }}"
 {{- end -}}
 
 {{/* Create a volume mount for the config secret */}}
