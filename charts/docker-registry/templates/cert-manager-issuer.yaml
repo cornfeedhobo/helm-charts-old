@@ -1,8 +1,0 @@
-{{- if .Values.certmanager.enabled -}}
-apiVersion: {{ (include "common.capabilities.certmanager.issuerApiVersion" .) }}
-kind: Issuer
-metadata:
-  name: {{ include "common.names.fullname" . | quote }}
-  labels: {{- include "common.labels" . | nindent 4 }}
-spec: {{- toYaml .Values.certmanager.issuerSpec | nindent 2 -}}
-{{- end -}}

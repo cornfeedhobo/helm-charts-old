@@ -1,6 +1,6 @@
 # docker-registry
 
-![Version: 0.3.0](https://img.shields.io/badge/Version-0.3.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 2.8.1](https://img.shields.io/badge/AppVersion-2.8.1-informational?style=flat-square)
+![Version: 0.4.0](https://img.shields.io/badge/Version-0.4.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 2.8.1](https://img.shields.io/badge/AppVersion-2.8.1-informational?style=flat-square)
 
 A Helm chart for installing the docker-registry
 
@@ -24,7 +24,6 @@ A Helm chart for installing the docker-registry
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| certmanager | object | `{"enabled":false,"issuerSpec":{"acme":{"privateKeySecretRef":{"name":"letsencrypt-production"},"server":"https://acme-v02.api.letsencrypt.org/directory","solvers":[{"http01":{"ingress":{"class":""}}}]}}}` | Configure cert-manager |
 | command | list | `["/bin/registry","serve","/etc/docker/registry/config.yml"]` | Override the command(s) for the default container |
 | configMountPath | string | `"/etc/docker/registry"` |  |
 | configSecretName | string | `""` | (Optional) Name of the manually created secret containing the [docker registry config file](https://docs.docker.com/registry/configuration/#list-of-configuration-options). If not provided, configmap must be populated. |
