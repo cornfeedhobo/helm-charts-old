@@ -1,0 +1,24 @@
+# cert-manager
+cert-manager:
+  installCRDs: true
+  ingressShim:
+    defaultIssuerName: "letsencrypt-production"
+  prometheus:
+    servicemonitor:
+      enabled: true
+
+# rancher
+rancher:
+  hostname: ""
+  ingress:
+    includeDefaultExtraAnnotations: false
+    extraAnnotations:
+      cert-manager.io/issuer: "letsencrypt-production"
+      cert-manager.io/issuer-kind: "ClusterIssuer"
+    tls:
+      source: "secret"
+
+clusterIssuer:
+  name: "letsencrypt-production"
+  email: ""
+  server: "https://acme-v02.api.letsencrypt.org/directory"

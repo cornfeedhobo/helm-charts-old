@@ -1,7 +1,6 @@
-apiVersion: v2
-name: docker-registry
-description: A Helm chart for installing the docker-registry
-icon: https://docs.docker.com/favicons/docs@2x.ico
+apiVersion: "v2"
+name: "k3os-bootstrap"
+description: "A Helm chart for bootstrapping k3os with cert-manager and rancher."
 
 # A chart can be either an 'application' or a 'library' chart.
 #
@@ -11,27 +10,29 @@ icon: https://docs.docker.com/favicons/docs@2x.ico
 # Library charts provide useful utilities or functions for the chart developer. They're included as
 # a dependency of application charts to inject those utilities and functions into the rendering
 # pipeline. Library charts do not define any templates and therefore cannot be deployed.
-type: application
+type: "application"
 
 # This is the chart version. This version number should be incremented each time you make changes
 # to the chart and its templates, including the app version.
 # Versions are expected to follow Semantic Versioning (https://semver.org/)
-version: 0.4.1
+version: "0.1.0"
 
-# This is the version number of the application being deployed. This version number should be
-# incremented each time you make changes to the application. Versions are not expected to
-# follow Semantic Versioning. They should reflect the version the application is using.
-# It is recommended to use it with quotes.
-appVersion: "2.8.1"
-
-sources:
-  - https://hub.docker.com/_/registry
+# This chart installs cert-manager and rancher at the same time, making this value meaningless.
+appVersion: "0.0.0"
 
 maintainers:
-  - name: cornfeedhobo
-    email: cornfeedhobo@fuzzlabs.org
+  - name: "cornfeedhobo"
+    email: "cornfeedhobo@fuzzlabs.org"
+
+sources:
+  - https://github.com/cert-manager
+  - https://github.com/rancher
 
 dependencies:
-  - name: common
-    repository: https://library-charts.k8s-at-home.com
-    version: 4.3.0
+  - name: "cert-manager"
+    repository: "https://charts.jetstack.io"
+    version: "v1.8.0"
+
+  - name: "rancher"
+    repository: "https://releases.rancher.com/server-charts/latest"
+    version: "2.6.4"

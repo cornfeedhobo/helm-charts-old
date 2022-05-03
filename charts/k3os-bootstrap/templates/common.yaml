@@ -1,0 +1,7 @@
+{{- if eq .Values.rancher.hostname "" }}
+{{- fail "rancher.hostname must be set" }}
+{{- end }}
+
+{{- if eq .Values.clusterIssuer.email }}
+{{- fail "clusterIssuer.email must be set" }}
+{{- end }}

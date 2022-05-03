@@ -1,0 +1,15 @@
+apiVersion: "cert-manager.io/v1"
+kind: "ClusterIssuer"
+metadata:
+  name: "{{ .Values.clusterIssuer.name }}"
+  labels: {{- include "k3os-bootstrap.labels" . | nindent 4 }}
+spec:
+  acme:
+    server: "{{ required "clusterIssuer.server must be set" .Values.clusterIssuer.server }}"
+    email: "{{ required "clusterIssuer.email must be set" .Values.clusterIssuer.email }}"
+    privateKeySecretRef:
+      name: "{{  .Values.clusterIssuer.name}}"
+    solvers:
+      - http01:
+          ingress:
+            class: ""

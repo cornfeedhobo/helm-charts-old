@@ -1,0 +1,9 @@
+dependencies:
+- name: cert-manager
+  repository: https://charts.jetstack.io
+  version: v1.8.0
+- name: rancher
+  repository: https://releases.rancher.com/server-charts/latest
+  version: 2.6.4
+digest: sha256:26e0534326f8e9434447183f6e77cfeb46d05ef921b86a7f20ba3845e06a716b
+generated: "2022-05-02T09:46:50.717495097-05:00"
