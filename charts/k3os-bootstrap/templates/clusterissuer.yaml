@@ -3,6 +3,8 @@ kind: "ClusterIssuer"
 metadata:
   name: "{{ .Values.clusterIssuer.name }}"
   labels: {{- include "k3os-bootstrap.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": "post-install"
 spec:
   acme:
     server: "{{ required "clusterIssuer.server must be set" .Values.clusterIssuer.server }}"
